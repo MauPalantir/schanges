@@ -1,47 +1,35 @@
 module SoundChanges
-  class Rule
-    def initialize components
-      @from, @to = components
-    end
 
-    def from
-      @from
-    end
-
-    def to
-      @to
-    end
+  class ClassDefinition < Hash
+    @regexp = /^(?<key>[[:upper:]])=(?<value>.+)$/
 
     def self.regexp
       @regexp
     end
+  end
 
-    def self.short_name
-      self.name.match(/::(.+)Rule$/)[1].downcase.to_sym
-    end
+  class AliasDefinition < Hash
+    @regexp = /^(?<key>.+)\|(?<value>.+)$/
 
-    def to_a
-      [@from, @to]
-    end
-
-    def to_h
-      {@from => @to}
+    def self.regexp
+      @regexp
     end
   end
 
-  class ClassRule < Rule
-    @regexp = /^([[:upper:]])=(.+)$/
-  end
-
-  class AliasRule < Rule
-    @regexp = /^(.+)\|(.+)$/
-  end
-
-  class ChangeRule < Rule
+  class ChangeRule
     # Regular expression to reckognize chage rules.
-    @regexp = %r{^(.+)/(.+)/(.+)$}
-    # Class
-    @@classes
+    @@regexp = %r{^(.+)/(.+)/(.+)$}
+
+    # Class deinitions
+    @@classes = {}
+
+    def self.regexp
+      @@regexp
+    end
+
+    def self.set_classes classes
+      @@classes = classes
+    end
 
     def initialize components
       @from, @to, @context = components
@@ -50,7 +38,11 @@ module SoundChanges
     # Public: Apply sound change rule on a word.
     #
     def apply_sc! word
-      raise "Rule not preapred with class definitions." unless @from_regexp
+      raise "Rule not preapred with class definitions." unless @@classes
+
+      if (!@from_regexp)
+        prepare_regexp
+      end
 
       @from_regexp.match(word) do |m|
         result = get_result m
@@ -62,21 +54,16 @@ module SoundChanges
     #
     # Prepare regular expressions.
     #
-    def prepare classes = []
-      @@classes = {}
+    def prepare_regexp
       @from_classes = []
       from, from_context = ''
-
-      classes.each do |klass|
-        # Store classes in a class variable.
-        @@classes[klass.from] = klass
-
+      @@classes.each do |char, definition|
         # Replace class reference with named regexp capture and
         # store classes appearing in the “from” part.
         from, from_context = [@from, @context].collect do |str|
-          if str.include? klass.from
-            @from_classes << { klass.from => klass.to }
-            str.gsub! klass.from, "(?<#{klass.from}>[#{Regexp::escape(klass.to)}])"
+          if str.include? char
+            @from_classes << { char => definition }
+            str.gsub! char, "(?<#{char}>[#{Regexp::escape(definition)}])"
           end
           str
         end
@@ -125,7 +112,6 @@ module SoundChanges
       # Replace the „from” part marked as underscore with the prepared „to” value.
       result[match['_']] = to
       result
-
     end
 
     # Private: Find class definitions in the To definition and replace them with
@@ -163,7 +149,7 @@ module SoundChanges
           from_class_index = @from_classes[index][from_class].index(match_letter)
 
           # Get the target class equivalent of the letter eg. "d".
-          result_char = @@classes[letter].to[from_class_index] || match_letter
+          result_char = @@classes[letter][from_class_index] || match_letter
 
           # Replace the class letter with the actual resulting letter.
           to[letter] = result_char

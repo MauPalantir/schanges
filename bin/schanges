@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+
+require_relative '../app/app'
+
+puts SoundChanges::App.new(ARGV).run
