@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
-require_relative '../app/app'
+$LOAD_PATH << File.dirname(__FILE__) + '/../app' unless $LOAD_PATH.include?(File.dirname(__FILE__) + '/../app/')
+$LOAD_PATH << File.dirname(__FILE__) + '/../lib' unless $LOAD_PATH.include?(File.dirname(__FILE__) + '/../lib/')
+
+require 'app'
 
 puts SoundChanges::App.new(ARGV).run

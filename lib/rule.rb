@@ -1,21 +1,4 @@
 module SoundChanges
-
-  class ClassDefinition < Hash
-    @regexp = /^(?<key>[[:upper:]])=(?<value>.+)$/
-
-    def self.regexp
-      @regexp
-    end
-  end
-
-  class AliasDefinition < Hash
-    @regexp = /^(?<key>.+)\|(?<value>.+)$/
-
-    def self.regexp
-      @regexp
-    end
-  end
-
   class ChangeRule
     # Regular expression to reckognize chage rules.
     @@regexp = %r{^(.+)/(.+)/(.+)$}
@@ -70,7 +53,7 @@ module SoundChanges
       end
 
       # Process various special characters in the context.
-      [:braces, :hashmark, :ellipsis].each do |sym|
+      [:brackets, :parentheses, :hashmark, :ellipsis].each do |sym|
         method("from_#{sym}_to_regexp!").call from_context
       end
       from_underscore_to_regexp! from, from_context
@@ -80,8 +63,16 @@ module SoundChanges
 
     private
 
-    # Replace braces with escaped braces.
-    def from_braces_to_regexp! str
+    # Replace parentheses with escaped braces.
+    def from_brackets_to_regexp! str
+      regexp = /(?!\(\?<[[:upper:]]>)\[(.+)\](?!\))/
+      if match = regexp.match(str)
+        str.gsub!(regexp, "[#{Regexp::escape(match[1])}]")
+      end
+    end
+
+    # Replace parentheses with escaped braces.
+    def from_parentheses_to_regexp! str
       str.gsub!(/\(([^?:<>]+)\)/, '(?:\1)?')
     end
 

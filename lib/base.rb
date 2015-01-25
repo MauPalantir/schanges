@@ -1,4 +1,6 @@
-require_relative 'rule'
+require 'rule'
+require 'class'
+require 'alias'
 
 module SoundChanges
   class Base
