@@ -8,23 +8,37 @@ module SoundChanges
     @@aliases = AliasDefinition.new
     @@rules = []
     @@words = []
+    @@params = []
 
     public
 
-    def self.run
+    def self.run params
       words = apply_aliases @@words
+      result = words
 
       @@rules.each do |rule|
-        words.collect! { |w| rule.apply_sc!(w) }
+        result = result.collect { |w| rule.apply_sc(w) }
       end
-      apply_aliases words, true
+
+      if params.has_key? :show_original and params[:show_original]
+        # Assign original words.
+        return Hash[words.zip(apply_aliases result, true)].collect do |original, changed|
+          Kernel.format("%s%10s", changed, "[#{original}]")
+        end
+      else
+        return result
+      end
     end
 
     def self.parse_rules input
-      input.split.each do |line|
-        ClassDefinition.regexp.match(line) { |m| @@classes[m['key']] = m['value'] }
-        AliasDefinition.regexp.match(line) { |m| @@aliases[m['key']] = m['value'] }
-        ChangeRule.regexp.match(line) {|m| @@rules << ChangeRule.new(m[1, 3]) }
+      input.split("\n").each do |line|
+        ClassDefinition.regexp.match(line) { |m| @@classes[m['key']] = Regexp::escape m['value'] }
+        AliasDefinition.regexp.match(line) do |m|
+          @@aliases[Regexp::escape(m['key'])] = Regexp::escape m['value']
+        end
+        ChangeRule.regexp.match(line) do |m|
+          @@rules << ChangeRule.new(m[1, 3])
+        end
       end
 
       ChangeRule::set_classes @@classes

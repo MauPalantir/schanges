@@ -9,7 +9,7 @@ module SoundChanges
 
     def run
       parse @files
-      Base::run
+      Base::run @params
     end
 
     protected
@@ -27,8 +27,11 @@ module SoundChanges
       parser = OptionParser.new
       @params = {}
 
-      # Output everything with new line.
+      # Output everything with new line. @todo implement this
       parser.on('-n') { @params[:newline] = true }
+      # Show original word in brackets
+      parser.on('-o') { @params[:show_original] = true }
+
       files = parser.parse! args
 
       raise "You need to specify exactly two files." unless files.count == 2

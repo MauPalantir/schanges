@@ -1,7 +1,7 @@
 module SoundChanges
   class ChangeRule
-    # Regular expression to reckognize chage rules.
-    @@regexp = %r{^(.+)/(.+)/(.+)$}
+    # Regular expression to reckognize change rules.
+    @@regexp = %r{^(.+)/(.*)/(.+)$}
 
     # Class deinitions
     @@classes = {}
@@ -20,18 +20,20 @@ module SoundChanges
 
     # Public: Apply sound change rule on a word.
     #
-    def apply_sc! word
+    def apply_sc word
       raise "Rule not preapred with class definitions." unless @@classes
 
       if (!@from_regexp)
         prepare_regexp
       end
 
-      @from_regexp.match(word) do |m|
+      result_word = word.clone
+
+      @from_regexp.match(result_word) do |m|
         result = get_result m
-        word.gsub!(@from_regexp, result)
+        result_word = result_word.gsub(@from_regexp, result)
       end
-      word
+      result_word
     end
 
     #
@@ -57,7 +59,6 @@ module SoundChanges
         method("from_#{sym}_to_regexp!").call from_context
       end
       from_underscore_to_regexp! from, from_context
-
       @from_regexp = Regexp.new from_context
     end
 
@@ -99,9 +100,9 @@ module SoundChanges
     # Return the replacement String.
     def get_result match
       result = match[0]
-      to = to_replace_classes @to, match
+      result_to = to_replace_classes match
       # Replace the „from” part marked as underscore with the prepared „to” value.
-      result[match['_']] = to
+      result[match['_']] = result_to
       result
     end
 
@@ -122,11 +123,13 @@ module SoundChanges
     #   Beacuse "t" is the second letter of the origin class, and "d" is the
     #
     # Returns the +to+ fragment with the class wildcards replaced with target letter.
-    def to_replace_classes to, from_match
+    def to_replace_classes from_match
       if !@from_classes
-        return to
+        return @to
       end
 
+      # Avoid manipulating to.
+      to = @to.clone
       to.each_char.with_index do |letter, index|
         # If the letter is a character class eg. Z.
         if @@classes.keys.include? letter
@@ -141,7 +144,6 @@ module SoundChanges
 
           # Get the target class equivalent of the letter eg. "d".
           result_char = @@classes[letter][from_class_index] || match_letter
-
           # Replace the class letter with the actual resulting letter.
           to[letter] = result_char
         end
