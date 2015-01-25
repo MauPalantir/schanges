@@ -63,7 +63,7 @@ module SoundChanges
 
     private
 
-    # Replace parentheses with escaped braces.
+    # Replace brackets with escaped brackets.
     def from_brackets_to_regexp! str
       regexp = /(?!\(\?<[[:upper:]]>)\[(.+)\](?!\))/
       if match = regexp.match(str)
@@ -71,7 +71,7 @@ module SoundChanges
       end
     end
 
-    # Replace parentheses with escaped braces.
+    # Replace parentheses with escaped parentheses.
     def from_parentheses_to_regexp! str
       str.gsub!(/\(([^?:<>]+)\)/, '(?:\1)?')
     end
