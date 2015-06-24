@@ -1,12 +1,23 @@
 module SoundChanges
+  class RulePlugin
+    class << self
+      attr_reader :from_regexp, :to_regexp
+
+      def process_regexp(str)
+        str.gsub!(from_regexp, to_regexp)
+      end
+    end
+  end
+
+  # Change rules.
   class Rule
+    Dir.glob("#{File.dirname(__FILE__)}/plugins/*.rb")
+      .each { |f| require_relative f }
+
     @rules = []
+    attr_reader :from, :to, :context
 
     class << self
-      def classes
-        CharacterClass.all
-      end
-
       def add(components)
         @rules << new(components)
       end
@@ -22,18 +33,26 @@ module SoundChanges
     end
 
     def initialize(components)
+      @original = components
       @from, @to, @context = components
+      @to_from_map = []
+
+      CharacterClass.find_classes(@to).each_with_index do |to_class, i|
+        @to_from_map << [to_class, CharacterClass.find_classes(@from)[i]]
+      end
     end
 
     # Public: Apply sound change rule on a word.
     #
     def apply(word)
-      prepare_regexp unless @from_regexp
+      regexp = prepare_rule_pattern
       result_word = word.clone
-
-      @from_regexp.match(result_word) do |m|
-        result = get_result m
-        result_word = result_word.gsub(@from_regexp, result)
+      m = regexp.match(result_word)
+      while m
+        result = get_result(m)
+        break unless result
+        result_word = result_word.sub(regexp, result)
+        m = regexp.match(result_word)
       end
       result_word
     end
@@ -41,69 +60,25 @@ module SoundChanges
     #
     # Prepare regular expressions.
     #
-    def prepare_regexp
-      @from_classes = []
-      from = ''
-      from_context = ''
-
-      self.class.classes.each do |char, definition|
-        # Replace class reference with named regexp capture and
-        # store classes appearing in the "from" part.
-        # @todo revise to support nonce classes of classes
-        from, from_context = [@from, @context].collect do |str|
-          if str.include? char
-            @from_classes << { char => definition }
-            str.gsub! char, "(?<#{char}>[#{Regexp.escape(definition)}])"
-          end
-          str
-        end
+    def prepare_rule_pattern
+      @from, @context = [@from, @context].collect do |string|
+        CharacterClass.process_from_regexp string
       end
 
       # Process various special characters in the context.
-      [:brackets, :parentheses, :hashmark, :ellipsis].each do |sym|
-        method("from_#{sym}_to_regexp!").call from_context
+      SoundChanges::RulePlugins.constants.each do |plugin|
+        SoundChanges::RulePlugins
+          .const_get(plugin).send :process_regexp, @context
       end
-      from_underscore_to_regexp! from, from_context
-      @from_regexp = Regexp.new from_context
+      assemble_regexp!
+      Regexp.new @context
     end
 
     private
 
-    # Replace brackets with escaped brackets.
-    def from_brackets_to_regexp!(str)
-      regexp = /(?!\(\?<[[:upper:]]>)\[(.+)\](?!\))/
-      regexp.match(str) do |match|
-        result = match[1]
-        # @todo Nonce classes of several classes.
-        # if classes_match = result.scan(/(?:\(\?<([[:upper:]])>\[[^\)]+\]\))/)
-        #   classes_match.collect! do |arr|
-        #     arr[0]
-        #   end
-        #   result.gsub!(')(', ')|(')
-        # end
-        str.gsub!(regexp, "[#{result}]")
-      end
-    end
-
-    # Replace parentheses with escaped parentheses.
-    def from_parentheses_to_regexp!(str)
-      str.gsub!(/\(([^?:<>]+)\)/, '(?:\1)?')
-    end
-
-    # Replace hashmark with word boundary markers.
-    def from_hashmark_to_regexp!(str)
-      str.gsub!(/\#$/, '(?:\b|\Z)')
-      str.gsub!(/^\#/, '(?:\b|\A)')
-    end
-
-    # Replace ellipsis with any characters wildcard.
-    def from_ellipsis_to_regexp!(str)
-      str.gsub!(/…/, '.+')
-    end
-
     # Replace underscore with the from expression in the context string.
-    def from_underscore_to_regexp!(from, context)
-      context.gsub!('_', "(?<_>#{from})")
+    def assemble_regexp!
+      @context.gsub!('_', "(?<_>#{@from})")
     end
 
     # Private: Make replacement string for the word part affected by the rule.
@@ -114,6 +89,7 @@ module SoundChanges
     def get_result(match)
       result = match[0]
       result_to = to_replace_classes match
+      return unless result_to
       # Replace the "from" part marked as underscore with the prepared
       # "to" value.
       result[match['_']] = result_to
@@ -139,28 +115,26 @@ module SoundChanges
     #
     # Returns the +to+ fragment with class wildcards replaced with target.
     def to_replace_classes(from_match)
-      return @to unless @from_classes
+      return @to if @to_from_map.empty?
       # Avoid manipulating to.
-      to = @to.clone
-      to.each_char.with_index do |letter, index|
-        # If the letter is a character class eg. Z.
-        if self.class.classes.keys.include? letter
-          # Pair target class with origin class by their order eg. Z > S
-          from_class = @from_classes[index].keys.first
-
-          # Get the actual letter that matches the original class in the word.
-          # Eg "t".
-          match_letter = from_match[from_class]
-          # Find the index of the letter in the original class eg. 1.
-          from_class_index = @from_classes[index][from_class].index(match_letter)
-
-          # Get the target class equivalent of the letter eg. "d".
-          result_char = self.class.classes[letter][from_class_index] || match_letter
-          # Replace the class letter with the actual resulting letter.
-          to[letter] = result_char
-        end
+      result = @to.clone
+      result.each_char.with_index do |letter, index|
+        next unless CharacterClass.class_letter?(letter)
+        to_class, from_class = @to_from_map.assoc(letter)
+        result[index] = replace_class(from_class, to_class, from_match)
       end
-      to
+      result
+    end
+
+    def replace_class(from_class, to_class, from_match)
+      return to_class.downcase unless from_class
+      from_char = from_match[from_class]
+      # Get the actual letter that matches the original class in the word.
+      # Eg "t".
+      # Find the index of the letter in the original class eg. 1.
+      from_class_index = CharacterClass.index(from_class, from_char)
+      # Get the target class equivalent of the letter eg. "d".
+      CharacterClass.classes[to_class][from_class_index] || from_char
     end
   end
 end
