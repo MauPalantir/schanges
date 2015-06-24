@@ -13,7 +13,8 @@ module SoundChanges
         @classes = {}
       end
 
-      def process_from_regexp(string)
+      # Replace character class wildcards with their full regexp.
+      def process_regexp(string)
         result = string.clone
         classes.each do |char, definition|
           if result.include? char
@@ -23,6 +24,7 @@ module SoundChanges
         result
       end
 
+      # Find character wildcards in a string.
       def find_classes(string)
         found = []
         string.each_char do |char|
@@ -31,6 +33,7 @@ module SoundChanges
         found
       end
 
+      # Determine if
       def class_letter?(letter)
         classes.keys.include? letter
       end

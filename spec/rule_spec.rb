@@ -144,4 +144,15 @@ describe SoundChanges::Rule do
       it_behaves_like 'a rule', examples
     end
   end
+
+  context 'support deleting a class' do
+    before { SoundChanges::CharacterClass.add 'C', 'skn' }
+    let(:rule) { subject.new ['C', '', 'n_'] }
+
+    examples = {
+      'inka' => 'ina', 'ans' => 'an', 'san' => 'san'
+    }
+
+    it_behaves_like 'a rule', examples
+  end
 end

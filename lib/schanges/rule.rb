@@ -33,12 +33,13 @@ module SoundChanges
     end
 
     def initialize(components)
-      @original = components
-      @from, @to, @context = components
+      @values = Hash[[:from, :to, :context].zip(components)]
       @to_from_map = []
-
-      CharacterClass.find_classes(@to).each_with_index do |to_class, i|
-        @to_from_map << [to_class, CharacterClass.find_classes(@from)[i]]
+      CharacterClass
+        .find_classes(@values[:to])
+        .each_with_index do |to_class, i|
+        @to_from_map << [to_class,
+                         CharacterClass.find_classes(@values[:from])[i]]
       end
     end
 
@@ -61,39 +62,29 @@ module SoundChanges
     # Prepare regular expressions.
     #
     def prepare_rule_pattern
-      @from, @context = [@from, @context].collect do |string|
-        CharacterClass.process_from_regexp string
-      end
+      from = CharacterClass.process_regexp @values[:from]
+      context = CharacterClass.process_regexp @values[:context]
 
       # Process various special characters in the context.
       SoundChanges::RulePlugins.constants.each do |plugin|
         SoundChanges::RulePlugins
-          .const_get(plugin).send :process_regexp, @context
+          .const_get(plugin).send :process_regexp, context
       end
-      assemble_regexp!
-      Regexp.new @context
+      Regexp.new assemble_regexp(from, context)
     end
 
     private
 
     # Replace underscore with the from expression in the context string.
-    def assemble_regexp!
-      @context.gsub!('_', "(?<_>#{@from})")
+    def assemble_regexp(from, context)
+      context.gsub!('_', "(?<_>#{from})")
     end
 
-    # Private: Make replacement string for the word part affected by the rule.
-    #
-    # +match+ - MatchData for the original string matched with +@from_regexp+.
-    #
-    # Return the replacement String.
+    # Replace "from" with the contents of "to".
     def get_result(match)
-      result = match[0]
-      result_to = to_replace_classes match
-      return unless result_to
-      # Replace the "from" part marked as underscore with the prepared
-      # "to" value.
-      result[match['_']] = result_to
-      result
+      string = match[0]
+      string[match['_']] = replace_classes_in @values[:to], match
+      string
     end
 
     # Private: Find class definitions in the To definition and replace them with
@@ -114,10 +105,10 @@ module SoundChanges
     #   second letter of the original class.
     #
     # Returns the +to+ fragment with class wildcards replaced with target.
-    def to_replace_classes(from_match)
-      return @to if @to_from_map.empty?
+    def replace_classes_in(to, from_match)
+      return to if @to_from_map.empty?
       # Avoid manipulating to.
-      result = @to.clone
+      result = to.clone
       result.each_char.with_index do |letter, index|
         next unless CharacterClass.class_letter?(letter)
         to_class, from_class = @to_from_map.assoc(letter)
