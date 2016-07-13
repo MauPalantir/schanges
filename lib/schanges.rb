@@ -4,4 +4,5 @@ require_relative 'schanges/character_alias'
 require_relative 'schanges/parser'
 require_relative 'schanges/app'
 
+require_relative 'schanges/syntax'
 require_relative 'schanges/cli'

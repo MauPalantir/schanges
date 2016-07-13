@@ -1,3 +1,4 @@
+require_relative 'spec_helper'
 require_relative '../lib/schanges/character_class'
 require_relative '../lib/schanges/rule'
 
@@ -9,18 +10,18 @@ end
 
 describe SoundChanges::Rule do
   subject { described_class }
-  rules =
-    [
-      't/s/V_V',
-      't/s/_#',
-      'S/Z/#_',
-      'a/o/_w',
-      'B/F/_…i',
-      'V/Á/_w',
-      'y/er/V_V#',
-      'w//Á_',
-      'w/u/_[ei]'
-    ]
+  # rules =
+  #   [
+  #     't/s/V_V',
+  #     't/s/_#',
+  #     'S/Z/#_',
+  #     'a/o/_w',
+  #     'B/F/_…i',
+  #     'V/Á/_w',
+  #     'y/er/V_V#',
+  #     'w//Á_',
+  #     'w/u/_[ei]'
+  #   ]
   before { SoundChanges::CharacterClass.reset }
 
   context 'support character classes' do
@@ -151,6 +152,42 @@ describe SoundChanges::Rule do
 
     examples = {
       'inka' => 'ina', 'ans' => 'an', 'san' => 'san'
+    }
+
+    it_behaves_like 'a rule', examples
+  end
+
+  context 'support metathesis' do
+    before { SoundChanges::CharacterClass.add 'V', 'aiu' }
+    let(:rule) { subject.new ['nt', '\\\\', 'V_'] }
+
+    examples = {
+      'inta' => 'itna', 'ntaya' => 'ntaya', 'mint' => 'mitn'
+    }
+
+    it_behaves_like 'a rule', examples
+  end
+
+  context 'support extended substitution' do
+    before do
+      SoundChanges::CharacterClass.add 'V', 'aiu'
+      SoundChanges::CharacterClass.add 'S', 'skt'
+      SoundChanges::CharacterClass.add 'Z', 'zgd'
+    end
+
+    let(:rule) { subject.new %w(nS Zm V_) }
+
+    examples = {
+      'ansa' => 'azma', 'nsai' => 'nsai', 'anti' => 'admi'
+    }
+    it_behaves_like 'a rule', examples
+  end
+
+  context 'support epenthesis' do
+    let(:rule) { subject.new ['', 'j', '_kt'] }
+
+    examples = {
+      'ikta' => 'ijkta', 'arakt' => 'arajkt'
     }
 
     it_behaves_like 'a rule', examples

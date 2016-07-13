@@ -6,14 +6,14 @@ module SoundChanges
         process: proc { |m| CharacterClass.add m['key'], m['value'] }
       },
       rules: {
-        regexp: %r{^(.+)/(.*)/(.+)$},
+        regexp: %r{^(.*)/(.*)/(.+)$},
         process: proc { |m| Rule.add m[1, 3] }
       },
       character_aliases: {
         regexp: /^(?<key>.+)\|(?<value>.+)$/,
         process: proc { |m| CharacterAlias.add m['key'], m['value'] }
       }
-    }
+    }.freeze
 
     def self.changes(input)
       input.each do |line|

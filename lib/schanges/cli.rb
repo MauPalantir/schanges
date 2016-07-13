@@ -9,8 +9,8 @@ module SoundChanges
     def apply(name)
       words_file = File.join(options[:path], "#{name}.csv")
       changes_file = File.join(options[:path], "#{name}.sc")
-      fail 'Word list not found' unless File.file?(words_file)
-      fail 'Changes file not found' unless File.file?(changes_file)
+      raise 'Word list not found' unless File.file?(words_file)
+      raise 'Changes file not found' unless File.file?(changes_file)
 
       puts App.apply(File.open(words_file), File.open(changes_file), options)
     rescue StandardError => e
