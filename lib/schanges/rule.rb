@@ -4,33 +4,18 @@ module SoundChanges
   # Change rules.
   class Rule
     CONTEXT_SYNTAX = SoundChanges::Syntax::FromProcessors
-                  .constants
-                  .collect { |klass| SoundChanges::Syntax::FromProcessors.const_get(klass) }
-                  .freeze
+                    .constants
+                    .collect { |klass| SoundChanges::Syntax::FromProcessors.const_get(klass) }
+                    .freeze
     RESULT_SYNTAX = SoundChanges::Syntax::ResultProcessors
                     .constants
                     .collect { |klass| SoundChanges::Syntax::ResultProcessors.const_get(klass) }
                     .freeze
 
-    @rules = []
     attr_reader :from, :to, :context
 
-    class << self
-      def add(components)
-        @rules << new(components)
-      end
-
-      def apply(words)
-        return words unless @rules
-        result = words.clone
-        @rules.each do |r|
-          result = result.collect { |w| r.apply(w) }
-        end
-        result
-      end
-    end
-
-    def initialize(components)
+    def initialize(components, options = {})
+      @options = options
       @values = Hash[[:from, :to, :context].zip(components)]
     end
 
@@ -38,20 +23,22 @@ module SoundChanges
     #
     def apply(word)
       regexp = prepare_rule_pattern
+      p regexp if @options[:debug]
       result_word = word.clone
-      m = regexp.match(result_word)
-
       # Support ephenthesis.
-      if @values[:from].empty?
+      m = regexp.match(result_word)
+      return result_word unless m
+
+      if @values[:to][@values[:from]]
         result_word = result_word.sub(regexp, get_result(m))
       else
-        while m
-          result = get_result(m)
-          break unless result
-          result_word = result_word.sub(regexp, result)
+        loop do
+          break unless m
+          result_word = result_word.sub(regexp, get_result(m))
           m = regexp.match(result_word)
         end
       end
+
       result_word
     end
 
@@ -59,6 +46,8 @@ module SoundChanges
     # Prepare regular expressions.
     #
     def prepare_rule_pattern
+      raise SoundChanges::Syntax::InvalidSyntaxError,
+            "Missing _ in context at rule \"#{@values.values.join('/')}\"" unless @values[:context]['_']
       from = CharacterClass.process_regexp @values[:from]
       context = CharacterClass.process_regexp @values[:context]
       # Process various special characters in the context.

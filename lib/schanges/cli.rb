@@ -9,6 +9,10 @@ module SoundChanges
             aliases: ['o'],
             default: false,
             description: "Show original words besides the results."
+    option :debug,
+            type: 'boolean',
+            aliases: ['d'],
+            default: false
     desc 'apply NAME', 'Apply a changeset on a word list.'
     long_desc 'You will need a NAME.csv and a NAME.sc in the same directory.'
     def apply(name)

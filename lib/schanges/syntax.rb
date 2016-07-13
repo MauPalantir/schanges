@@ -1,5 +1,7 @@
 module SoundChanges
-  module Syntax; end
+  module Syntax;
+    InvalidSyntaxError = Class.new StandardError
+  end
 
   class FromProcessor
     FROM_REGEXP = Regexp.new('')

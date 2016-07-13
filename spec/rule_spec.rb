@@ -84,7 +84,7 @@ describe SoundChanges::Rule do
   context 'support … as someting later in a word' do
     let(:rule) { subject.new(%w(a e _…i)) }
     examples = {
-      'arewi' => 'erewi', 'karammi' => 'keremmi'
+      'arewi' => 'erewi', 'karammi' => 'keremmi', 'aiya' => 'eiya'
     }
 
     it_behaves_like 'a rule', examples

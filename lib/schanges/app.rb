@@ -1,21 +1,24 @@
 module SoundChanges
   class App
-    attr_reader :options, :words, :changes_raw
+    attr_reader :options, :words, :changes_raw, :ruleset
 
     def initialize(words, changes, options = {})
       @options = options
-      Parser.changes(changes)
+      @ruleset = Ruleset.new
+      Parser.changes(changes, @ruleset, options)
       @words = Parser.words(words)
       @changes_raw = changes
       @aliased = CharacterAlias.apply self.words
     end
 
     def apply
-      result = CharacterAlias.apply Rule.apply(@aliased), :reverse
+      result = CharacterAlias.apply ruleset.apply(@aliased), :reverse
       if options[:show_original]
         # Assign original words to result words.
         Hash[words.zip(result)].collect do |original, changed|
-          Kernel.format('%-10s%s', changed, "[#{original}]")
+          # Space words containing flying accents with +1 space.
+          space = changed[/[̀́̌̈̆̂]/] ? 11 : 10
+          Kernel.format("%-#{space}s%s", changed, "[#{original}]")
         end
       else
         result

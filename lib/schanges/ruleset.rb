@@ -1,17 +1,16 @@
 module SoundChanges
   class Ruleset
-    def rules
-      @rules || []
-    end
+    attr_reader :rules
 
-    def initialize(rules)
+    def initialize(rules = [])
+      @rules = []
       rules.each do |rule|
         add(rule)
       end
     end
 
-    def add(components)
-      @rules << Rule.new(components)
+    def add(components, options)
+      rules << Rule.new(components, options)
     end
 
     def apply(words)
