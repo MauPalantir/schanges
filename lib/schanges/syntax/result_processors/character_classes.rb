@@ -7,9 +7,6 @@ module SoundChanges::Syntax::ResultProcessors
     # Private: Find class definitions in the To definition and replace them with
     # the letter which has the same index in the target class as the original letter.
     #
-    # - +to+ - The to pattern of the rule.
-    # - +from_match+ - The MatchData of the full substring that the rule matched (from+context).
-    #
     # Example:
     #   Given we have a class "S=ptk"
     #   And we have a class "Z=bdg"

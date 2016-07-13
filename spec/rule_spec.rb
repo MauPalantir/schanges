@@ -49,6 +49,20 @@ describe SoundChanges::Rule do
     end
   end
 
+  # context 'characters with floating accents' do
+  #   before { SoundChanges::CharacterClass.add 'L', 'lry' }
+  #   before { SoundChanges::CharacterClass.add 'Ā̀', 'ā̀ḕī̀ṑū̀' }
+  #   let(:rule) { subject.new(%w(A Ā̀ _L)) }
+
+  #   examples = {
+  #     'karu' => 'kā̀ru',
+  #     'ushur' => 'ushū̀r',
+  #     'oyar' => 'óyā̀r'
+  #   }
+
+  #   it_behaves_like 'a rule', examples
+  # end
+
   context 'support # as word beginning' do
     let(:rule) { subject.new(%w(a e #_)) }
     examples = {
