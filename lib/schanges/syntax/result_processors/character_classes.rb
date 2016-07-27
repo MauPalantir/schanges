@@ -21,12 +21,13 @@ module SoundChanges::Syntax::ResultProcessors
     # Returns the +to+ fragment with class wildcards replaced with target.
     def replace_classes
       return to if to_from_map.empty?
-      to.each_char.with_index do |letter, index|
+      result = to.clone
+      result.each_char.with_index do |letter, index|
         next unless ::SoundChanges::CharacterClass.class_letter?(letter)
         to_class, from_class = to_from_map.assoc(letter)
-        to[index] = replace_class(from_class, to_class)
+        result[index] = replace_class(from_class, to_class)
       end
-      to
+      result
     end
 
     private

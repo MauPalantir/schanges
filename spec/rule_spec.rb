@@ -81,6 +81,15 @@ describe SoundChanges::Rule do
     it_behaves_like 'a rule', examples
   end
 
+  # @todo bug: if a word contains the same substring that was matched as _ value
+  # twice, then the first will be replaced regardless of context.
+  context 'support multiple matches' do
+  end
+
+  # @todo this is a bug
+  context 'support multiple instances of the same character class' do
+  end
+
   context 'support … as someting later in a word' do
     let(:rule) { subject.new(%w(a e _…i)) }
     examples = {

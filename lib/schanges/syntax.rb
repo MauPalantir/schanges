@@ -1,5 +1,5 @@
 module SoundChanges
-  module Syntax;
+  module Syntax
     InvalidSyntaxError = Class.new StandardError
   end
 
