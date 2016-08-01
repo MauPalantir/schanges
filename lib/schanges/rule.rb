@@ -23,7 +23,7 @@ module SoundChanges
     # Public: Apply sound change rule on a word.
     #
     def apply(word)
-      p regexp if @options[:debug]
+      STDERR.puts regexp if @options[:debug]
       result_word = word.clone
       # Support ephenthesis.
       m = regexp.match(result_word)

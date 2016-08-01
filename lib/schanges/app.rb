@@ -1,27 +1,38 @@
 module SoundChanges
-  class App
-    attr_reader :options, :words, :changes_raw, :ruleset
+  class Applier
+    attr_reader :options, :words, :changes_raw, :ruleset, :stages
 
-    def initialize(words, changes, options = {})
+    def initialize(options = {})
+      @stages = {}
       @options = options
-      @ruleset = Ruleset.new
-      Parser.changes(changes, @ruleset, options)
-      @words = Parser.words(words)
-      @changes_raw = changes
-      @aliased = CharacterAlias.apply self.words
+    end
+
+    def add_stage(name, words, changes)
+      ruleset = Parser.changes(changes, Ruleset.new([], options))
+      processed_words = Parser.words(words)
+      @stages[name] = {
+        name: name,
+        changes_raw: changes,
+        ruleset: ruleset,
+        words: processed_words,
+        aliased_words: CharacterAlias.apply(processed_words)
+      }
     end
 
     def apply
-      result = CharacterAlias.apply ruleset.apply(@aliased), :reverse
-      if options[:show_original]
-        # Assign original words to result words.
-        Hash[words.zip(result)].collect do |original, changed|
-          # Space words containing flying accents with +1 space.
-          space = changed[/[̀́̌̈̆̂]/] ? 11 : 10
-          Kernel.format("%-#{space}s%s", changed, "[#{original}]")
+      previous = {}
+      stages.reduce({}) do |aliased_result, (name, stage)|
+        words = stage[:aliased_words]
+        original = stage[:aliased_words]
+        unless previous.empty?
+          words = previous[:result] + words
+          original = previous[:original] + original
         end
-      else
-        result
+        result = stage[:ruleset].apply(words)
+        aliased_result[name] = Hash[CharacterAlias.apply(original, :reverse).zip(CharacterAlias.apply(result, :reverse))]
+        previous[:original] = words
+        previous[:result] = result
+        aliased_result
       end
     end
   end

@@ -7,7 +7,7 @@ module SoundChanges
       },
       rules: {
         regexp: %r{^(\S*)/(.*)/(.+)$},
-        process: proc { |m| @ruleset.add m[1, 3], @options }
+        process: proc { |m| @ruleset.add m[1, 3] }
       },
       character_aliases: {
         regexp: /^(?<key>.+)\|(?<value>.+)$/,
@@ -15,14 +15,14 @@ module SoundChanges
       }
     }.freeze
 
-    def self.changes(input, ruleset, options)
+    def self.changes(input, ruleset)
       @ruleset = ruleset
-      @options = options
       input.each do |line|
         LINE_PATTERNS.each do |_type, data|
           data[:regexp].match(line, &data[:process])
         end
       end
+      ruleset
     end
 
     def self.words(input)

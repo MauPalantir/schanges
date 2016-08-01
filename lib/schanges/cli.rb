@@ -3,26 +3,60 @@ require 'thor'
 module SoundChanges
   # Main app
   class CLI < Thor
+    no_tasks do
+      def apply_changes(words, changes, out_file)
+
+      end
+    end
+
+
     option :path, aliases: ['p'], default: '.', description: "Path to directory where your changes live"
     option :show_original,
             type: 'boolean',
             aliases: ['o'],
             default: false,
-            description: "Show original words besides the results."
+            description: 'Show original words besides the results.'
     option :debug,
             type: 'boolean',
             aliases: ['d'],
             default: false
+    option :output_by_stage,
+            type: 'boolean',
+            default: false,
+            description: 'Output wordlist between stages besides final version'
     desc 'apply NAME', 'Apply a changeset on a word list.'
     long_desc 'You will need a NAME.csv and a NAME.sc in the same directory.'
     def apply(name)
-      words_file = File.join(options[:path], "#{name}.csv")
-      changes_file = File.join(options[:path], "#{name}.sc")
-      raise 'Word list not found' unless File.file?(words_file)
-      raise 'Changes file not found' unless File.file?(changes_file)
+      words_files = Dir.glob(File.join(options[:path], "#{name}*.csv"))
 
-      puts App.new(File.open(words_file), File.open(changes_file), options).apply
+      app = Applier.new
+      words_files.each do |file|
+        basename = File.basename(file).sub(/\.csv/, '')
+        sc = file.sub(/\.csv/, '.sc')
+        app.add_stage(basename, File.open(file), File.open(sc)) if File.file?(sc)
+      end
+
+      results = app.apply
+      results.each do |stage, result|
+        file = File.join(options[:path], "#{stage}.out")
+
+        lines = if options[:show_original]
+          # Assign original words to result words.
+          result.collect do |original, changed|
+            # Space words containing flying accents with +1 space.
+            space = changed[/[̀́̌̈̆̂]/] ? 11 : 10
+            Kernel.format("%-#{space}s%s", changed, "[#{original}]")
+          end
+        else
+          result
+        end
+
+        File.open(file, 'wb') do |f|
+          f.write(lines.join("\n"))
+        end
+      end
     rescue StandardError => e
+      raise e if options[:debug]
       puts "ERROR: #{e}"
     end
   end
