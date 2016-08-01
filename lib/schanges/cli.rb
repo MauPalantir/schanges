@@ -29,7 +29,7 @@ module SoundChanges
     def apply(name)
       words_files = Dir.glob(File.join(options[:path], "#{name}*.csv"))
 
-      app = Applier.new
+      app = Applier.new(options)
       words_files.each do |file|
         basename = File.basename(file).sub(/\.csv/, '')
         sc = file.sub(/\.csv/, '.sc')

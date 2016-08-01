@@ -6,7 +6,7 @@ module SoundChanges
         process: proc { |m| CharacterClass.add m['key'], m['value'] }
       },
       rules: {
-        regexp: %r{^(\S*)/(.*)/(.+)$},
+        regexp: %r{^([\S ]+)/(.*)/(.+)$},
         process: proc { |m| @ruleset.add m[1, 3] }
       },
       character_aliases: {
@@ -26,7 +26,7 @@ module SoundChanges
     end
 
     def self.words(input)
-      input.collect(&:strip)
+      input.collect(&:strip).reject { |w| w[0] == '#' }
     end
   end
 end

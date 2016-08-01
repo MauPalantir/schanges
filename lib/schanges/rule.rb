@@ -23,20 +23,19 @@ module SoundChanges
     # Public: Apply sound change rule on a word.
     #
     def apply(word)
-      STDERR.puts regexp if @options[:debug]
+      STDOUT.puts word, regexp if @options[:debug]
+      original_word = word
       result_word = word.clone
       # Support ephenthesis.
       m = regexp.match(result_word)
       return result_word unless m
 
-      if @values[:to][@values[:from]]
-        result_word = result_word.sub(regexp, get_result(m))
-      else
-        loop do
-          break unless m
-          result_word = result_word.sub(regexp, get_result(m))
-          m = regexp.match(result_word)
-        end
+      loop do
+        break unless m
+        result_word.sub!(regexp, get_result(m))
+        break if result_word == original_word
+        original_word = result_word
+        m = regexp.match(result_word)
       end
 
       result_word
