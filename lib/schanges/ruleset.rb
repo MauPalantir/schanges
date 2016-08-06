@@ -16,7 +16,7 @@ module SoundChanges
 
     def apply(words)
       return words unless @rules
-      STDERR.puts @rules.size if options[:debug]
+      STDOUT.puts @rules.size if options[:rule_count]
       result = words.clone
       @rules.each do |r|
         result = result.collect { |w| r.apply(w) }

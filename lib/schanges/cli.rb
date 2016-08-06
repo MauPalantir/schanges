@@ -11,14 +11,18 @@ module SoundChanges
 
 
     option :path, aliases: ['p'], default: '.', description: "Path to directory where your changes live"
-    option :show_original,
-            type: 'boolean',
+    option :original,
+            type: 'string',
             aliases: ['o'],
             default: false,
             description: 'Show original words besides the results.'
     option :debug,
             type: 'boolean',
             aliases: ['d'],
+            default: false
+    option :rule_count,
+            type: 'boolean',
+            aliases: ['rc'],
             default: false
     option :output_by_stage,
             type: 'boolean',
@@ -40,16 +44,16 @@ module SoundChanges
       results.each do |stage, result|
         file = File.join(options[:path], "#{stage}.out")
 
-        lines = if options[:show_original]
-          # Assign original words to result words.
-          result.collect do |original, changed|
-            # Space words containing flying accents with +1 space.
-            space = changed[/[̀́̌̈̆̂]/] ? 11 : 10
-            Kernel.format("%-#{space}s%s", changed, "[#{original}]")
-          end
-        else
-          result
-        end
+        lines = if options[:original]
+                  # Assign original words to result words.
+                  result.collect do |original, changed|
+                    # Space words containing flying accents with +1 space.
+                    space = changed[/[̀́̌̈̆̂]/] ? 11 : 10
+                    Kernel.format("%-#{space}s%s", changed, "[#{original}]")
+                  end
+                else
+                  result.values
+                end
 
         File.open(file, 'wb') do |f|
           f.write(lines.join("\n"))

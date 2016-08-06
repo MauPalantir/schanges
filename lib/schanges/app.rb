@@ -17,22 +17,18 @@ module SoundChanges
         words: processed_words,
         aliased_words: CharacterAlias.apply(processed_words)
       }
+      self
     end
 
     def apply
-      previous = {}
-      stages.reduce({}) do |aliased_result, (name, stage)|
-        words = stage[:aliased_words]
-        original = stage[:aliased_words]
-        unless previous.empty?
-          words = previous[:result] + words
-          original = previous[:original] + original
-        end
+      original = []
+      result = []
+
+      stages.each_with_object({}) do |(name, stage), aliased_result|
+        words = result + stage[:aliased_words]
+        original = options[:original] == 'absolute' ? original + stage[:aliased_words] : words
         result = stage[:ruleset].apply(words)
         aliased_result[name] = Hash[CharacterAlias.apply(original, :reverse).zip(CharacterAlias.apply(result, :reverse))]
-        previous[:original] = words
-        previous[:result] = result
-        aliased_result
       end
     end
   end
