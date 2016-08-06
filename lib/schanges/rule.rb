@@ -14,6 +14,10 @@ module SoundChanges
 
     attr_reader :from, :to, :context, :regexp
 
+    def from; @values[:from]; end
+    def to; @values[:to]; end
+    def context; @values[:context]; end
+
     def initialize(components, options = {})
       @options = options
       @values = Hash[[:from, :to, :context].zip(components)]
@@ -23,13 +27,14 @@ module SoundChanges
     # Public: Apply sound change rule on a word.
     #
     def apply(word)
-      STDOUT.puts word, regexp if @options[:debug]
+      STDOUT.puts word if @options[:debug]
       original_word = word
-      result_word = word.clone
+      result_word = word.dup
+
       # Support ephenthesis.
       m = regexp.match(result_word)
       return result_word unless m
-
+      return result_word.sub(regexp, get_result(m)) if to[from]
       loop do
         break unless m
         result_word.sub!(regexp, get_result(m))

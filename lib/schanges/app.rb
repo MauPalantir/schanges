@@ -28,8 +28,18 @@ module SoundChanges
         words = result + stage[:aliased_words]
         original = options[:original] == 'absolute' ? original + stage[:aliased_words] : words
         result = stage[:ruleset].apply(words)
-        aliased_result[name] = Hash[CharacterAlias.apply(original, :reverse).zip(CharacterAlias.apply(result, :reverse))]
+        aliased_result[name] = aliased_result(original, result)
       end
+    end
+
+    private
+
+    def aliased_result(original, result)
+      Hash[
+        CharacterAlias.apply(original, :reverse).zip(
+          CharacterAlias.apply(result, :reverse)
+        )
+      ]
     end
   end
 end

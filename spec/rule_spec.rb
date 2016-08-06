@@ -206,6 +206,19 @@ describe SoundChanges::Rule do
     it_behaves_like 'a rule', examples
   end
 
+  context 'support multiple instances of a match' do
+    before do
+      SoundChanges::CharacterClass.add 'V', 'aiu'
+      SoundChanges::CharacterClass.add 'S', 'skt'
+      SoundChanges::CharacterClass.add 'Z', 'zgd'
+    end
+
+    let(:rule) { subject.new %w(nS Zm V_) }
+
+    examples = { 'ansahanta' => 'azmahadma' }
+    it_behaves_like 'a rule', examples
+  end
+
   context 'support epenthesis' do
     let(:rule) { subject.new ['', 'j', '_kt'] }
 
