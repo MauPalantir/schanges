@@ -26,7 +26,7 @@ module SoundChanges
 
       stages.each_with_object({}) do |(name, stage), aliased_result|
         words = result + stage[:aliased_words]
-        original = options[:original] == 'absolute' ? original + stage[:aliased_words] : words
+        original = options[:original] == 'absolute' ? original + stage[:words] : words
         result = stage[:ruleset].apply(words)
         aliased_result[name] = aliased_result(original, result)
       end
@@ -35,11 +35,19 @@ module SoundChanges
     private
 
     def aliased_result(original, result)
-      Hash[
-        CharacterAlias.apply(original, :reverse).zip(
-          CharacterAlias.apply(result, :reverse)
-        )
-      ]
+      if options[:aliased]
+        Hash[
+          CharacterAlias.apply(original, :reverse).zip(
+            CharacterAlias.apply(result, :reverse)
+          )
+        ]
+      else
+        original.zip(CharacterAlias.apply(result, :reverse))
+      end
+    end
+
+    def apply_alias()
+
     end
   end
 end

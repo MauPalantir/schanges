@@ -20,6 +20,10 @@ module SoundChanges
             type: 'boolean',
             aliases: ['d'],
             default: false
+    option :aliased,
+            type: 'boolean',
+            aliases: ['a'],
+            default: true
     option :rule_count,
             type: 'boolean',
             aliases: ['rc'],
