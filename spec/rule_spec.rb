@@ -4,7 +4,7 @@ require_relative '../lib/schanges/rule'
 
 shared_examples_for 'a rule' do |examples|
   examples.each do |input, output|
-    it("'#{input}' > '#{output}'") { expect(rule.apply(input)).to eq output }
+    it("'#{input}' > '#{output}'") { expect(rule.apply(word: input)).to eq(word: output) }
   end
 end
 

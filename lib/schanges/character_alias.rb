@@ -17,8 +17,8 @@ module SoundChanges
 
       protected
 
-      def apply_alias(word, reverse = false)
-        w = word.clone
+      def apply_alias(word_entry, reverse = false)
+        w = word_entry[:word].clone
         @aliases.each do |char, al|
           if reverse
             w.gsub!(al, char)
@@ -26,7 +26,7 @@ module SoundChanges
             w.gsub!(char, al)
           end
         end
-        w
+        word_entry.merge(:word => w)
       end
     end
   end

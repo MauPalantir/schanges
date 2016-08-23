@@ -26,15 +26,16 @@ module SoundChanges
 
     # Public: Apply sound change rule on a word.
     #
-    def apply(word)
+    def apply(word_entry)
+      word = word_entry[:word]
       STDOUT.puts word if @options[:debug]
       original_word = word
       result_word = word.dup
 
       # Support ephenthesis.
       m = regexp.match(result_word)
-      return result_word unless m
-      return result_word.sub(regexp, get_result(m)) if to[from]
+      return word_entry.merge(word: result_word) unless m
+      return word_entry.merge(word: result_word.sub(regexp, get_result(m))) if to[from]
       loop do
         break unless m
         result_word.sub!(regexp, get_result(m))
@@ -43,7 +44,7 @@ module SoundChanges
         m = regexp.match(result_word)
       end
 
-      result_word
+      word_entry.merge(word: result_word)
     end
 
     #

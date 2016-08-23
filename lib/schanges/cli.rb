@@ -4,11 +4,22 @@ module SoundChanges
   # Main app
   class CLI < Thor
     no_tasks do
-      def apply_changes(words, changes, out_file)
+      def output(changed, original = nil)
+        out = changed[:word]
+        space = changed[/[̀́̌̈̆̂]/] ? 16 : 15
+        # Space words containing flying accents with +1 space.
+        if original
+          out = Kernel.format("%-#{space}s%s", out, "[#{original}]")
+          space += 15
+        end
 
+        if changed[:gloss]
+          Kernel.format("%-#{space}s\"%s\"", out, changed[:gloss])
+        else
+          out
+        end
       end
     end
-
 
     option :path, aliases: ['p'], default: '.', description: "Path to directory where your changes live"
     option :original,
@@ -51,12 +62,10 @@ module SoundChanges
         lines = if options[:original]
                   # Assign original words to result words.
                   result.collect do |original, changed|
-                    # Space words containing flying accents with +1 space.
-                    space = changed[/[̀́̌̈̆̂]/] ? 11 : 10
-                    Kernel.format("%-#{space}s%s", changed, "[#{original}]")
+                    output(changed, original)
                   end
                 else
-                  result.values
+                  result.values.collect { |r| output(r) }
                 end
 
         File.open(file, 'wb') do |f|

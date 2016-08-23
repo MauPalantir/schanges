@@ -41,21 +41,21 @@ describe SoundChanges::Applier do
     let(:output_words) do
       {
         'stage1' => {
-          'apata' => 'abada',
-          'kita' => 'kida',
-          'patak' => 'padak'
+          'apata' => { word: 'abada', gloss: nil },
+          'kita' => { word: 'kida', gloss: nil },
+          'patak' => { word: 'padak', gloss: nil }
         },
         'stage2' => {
-          'apata' => 'abd',
-          'kita' => 'kid',
-          'patak' => 'padk',
-          'kutu' => 'ktu'
+          'apata' => { word: 'abd', gloss: nil },
+          'kita' => { word: 'kid', gloss: nil },
+          'patak' => { word: 'padk', gloss: nil },
+          'kutu' => { word: 'ktu', gloss: nil }
         },
         'stage3' => {
-          'apata' => 'abdo',
-          'kita' => 'kid',
-          'patak' => 'padk',
-          'kutu' => 'ktu'
+          'apata' => { word: 'abdo', gloss: nil },
+          'kita' => { word: 'kid', gloss: nil },
+          'patak' => { word: 'padk', gloss: nil },
+          'kutu' => { word: 'ktu', gloss: nil }
         }
       }
     end
@@ -75,21 +75,21 @@ describe SoundChanges::Applier do
     let(:output_words) do
       {
         'stage1' => {
-          'apata' => 'abada',
-          'kita' => 'kida',
-          'patak' => 'padak'
+          'apata' => { word: 'abada', gloss: nil },
+          'kita' => { word: 'kida', gloss: nil },
+          'patak' => { word: 'padak', gloss: nil }
         },
         'stage2' => {
-          'abada' => 'abd',
-          'kida' => 'kid',
-          'padak' => 'padk',
-          'kutu' => 'ktu'
+          'abada' => { word: 'abd', gloss: nil },
+          'kida' => { word: 'kid', gloss: nil },
+          'padak' => { word: 'padk', gloss: nil },
+          'kutu' => { word: 'ktu', gloss: nil }
         },
         'stage3' => {
-          'abd' => 'abdo',
-          'kid' => 'kid',
-          'padk' => 'padk',
-          'ktu' => 'ktu'
+          'abd' => { word: 'abdo', gloss: nil },
+          'kid' => { word: 'kid', gloss: nil },
+          'padk' => { word: 'padk', gloss: nil },
+          'ktu' => { word: 'ktu', gloss: nil }
         }
       }
     end

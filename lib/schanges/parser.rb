@@ -26,7 +26,10 @@ module SoundChanges
     end
 
     def self.words(input)
-      input.collect(&:strip).reject { |w| w[0] == '#' }
+      input.reject { |w| w.empty? || w[0] == '#' }.collect do |line|
+        m = line.match(/(?<word>[^"]+)(?:"(?<gloss>.+)")?/)
+        { word: m[:word].strip, gloss: m[:gloss] } if m
+      end.compact
     end
   end
 end

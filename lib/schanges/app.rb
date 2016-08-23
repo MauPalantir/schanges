@@ -37,17 +37,13 @@ module SoundChanges
     def aliased_result(original, result)
       if options[:aliased]
         Hash[
-          CharacterAlias.apply(original, :reverse).zip(
+          CharacterAlias.apply(original, :reverse).collect { |w| w[:word] }.zip(
             CharacterAlias.apply(result, :reverse)
           )
         ]
       else
-        original.zip(CharacterAlias.apply(result, :reverse))
+        Hash[original.collect { |w| w[:word] }.zip(CharacterAlias.apply(result, :reverse))]
       end
-    end
-
-    def apply_alias()
-
     end
   end
 end
