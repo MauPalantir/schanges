@@ -6,11 +6,11 @@ module SoundChanges
     no_tasks do
       def output(changed, original = nil)
         out = changed[:word]
-        space = changed[/[̀́̌̈̆̂]/] ? 16 : 15
+        space = 15 + out.scan(/[̀́̌̈̆̂]/).size
         # Space words containing flying accents with +1 space.
         if original
           out = Kernel.format("%-#{space}s%s", out, "[#{original}]")
-          space += 15
+          space += 15 + original.scan(/[̀́̌̈̆̂]/).size
         end
 
         if changed[:gloss]
