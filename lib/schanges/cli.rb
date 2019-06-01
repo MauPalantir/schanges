@@ -41,12 +41,12 @@ module SoundChanges
             default: false
     option :output_by_stage,
             type: 'boolean',
-            default: false,
+            default: true,
             description: 'Output wordlist between stages besides final version'
     desc 'apply NAME', 'Apply a changeset on a word list.'
     long_desc 'You will need a NAME.csv and a NAME.sc in the same directory.'
     def apply(name)
-      words_files = Dir.glob(File.join(options[:path], "#{name}*.csv"))
+      words_files = Dir.glob(File.join(options[:path], "#{name}*.csv")).sort()
 
       app = Applier.new(options)
       words_files.each do |file|
@@ -56,6 +56,7 @@ module SoundChanges
       end
 
       results = app.apply
+
       results.each do |stage, result|
         file = File.join(options[:path], "#{stage}.out")
 
